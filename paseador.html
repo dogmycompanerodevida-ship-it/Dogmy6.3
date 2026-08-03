@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#2e7d32">
+<title>Panel del Paseador - DogMy 6.3</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg, #ffe600, #7ed957);
+    display: flex; justify-content: center; align-items: center;
+    min-height: 100vh; padding: 20px;
+}
+.contenedor { width: 100%; display: flex; justify-content: center; }
+.tarjeta {
+    width: 90%; max-width: 420px; background: white;
+    padding: 25px; border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, .25); text-align: center;
+}
+h1 { color: #2e7d32; margin-bottom: 5px; font-size: 24px; }
+.subtitulo { color: #666; margin-bottom: 15px; font-size: 16px; }
+h3 { color: #2e7d32; margin: 10px 0; }
+button {
+    width: 100%; padding: 14px; margin-top: 8px;
+    background: #2e7d32; color: white; border: none;
+    border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer;
+}
+button:hover { background: #1b5e20; }
+#cronometroBox {
+    background: linear-gradient(135deg, #fff3cd, #ffe082);
+    border: 2px solid #ffc107; border-radius: 15px;
+    padding: 20px; margin: 15px 0; display: none;
+}
+#cronometro {
+    font-family: 'Courier New', monospace; font-size: 48px;
+    font-weight: bold; color: #2e7d32; margin: 10px 0;
+}
+#estado {
+    font-size: 18px; margin: 10px 0; padding: 10px; border-radius: 10px;
+}
+.disponible { background: #d4edda; color: #155724; }
+.en-curso { background: #fff3cd; color: #856404; }
+#btnFoto {
+    background: #9c27b0;
+    transition: background 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+    touch-action: manipulation;
+}
+#btnFoto:hover { background: #7b1fa2; }
+#btnFoto:disabled { background: #ccc; cursor: not-allowed; }
+#btnFoto.grabando {
+    background: #d32f2f !important;
+    transform: scale(1.04);
+    box-shadow: 0 0 0 6px rgba(211,47,47,0.2);
+}
+.perro-paseo-box {
+    background: #e8f5e9; border: 2px solid #4caf50;
+    border-radius: 12px; padding: 15px; margin: 10px 0;
+    text-align: left;
+}
+.perro-paseo-box p { margin: 5px 0; font-size: 14px; }
+.cerrar { background: #d32f2f !important; margin-top: 20px; }
+.cerrar:hover { background: #b71c1c !important; }
+.gps-info {
+    background: #e3f2fd; border-radius: 10px;
+    padding: 10px; margin: 10px 0; font-size: 13px; color: #1565c0;
+}
+#eventosBox {
+    display: none;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin: 10px 0;
+}
+#eventosBox button {
+    margin-top: 0;
+    font-size: 14px;
+    padding: 10px;
+}
+#distanciaBox {
+    background: #e8f5e9;
+    border: 2px solid #4caf50;
+    border-radius: 12px;
+    padding: 12px;
+    margin: 10px 0;
+    display: none;
+    font-size: 16px;
+    color: #2e7d32;
+}
+</style>
+</head>
+<body>
+<div class="contenedor">
+<div class="tarjeta">
+
+<h1>🐕 Panel del Paseador</h1>
+<p class="subtitulo" id="nombrePaseador">Bienvenido</p>
+
+<h3 id="estado" class="disponible">🟢 Disponible</h3>
+
+<div id="cronometroBox">
+    <p style="color:#856404;font-size:14px;margin-bottom:5px;">⏱️ Tiempo de paseo</p>
+    <p id="cronometro">00:00:00</p>
+</div>
+
+<div id="distanciaBox">
+    <p>📏 Distancia: <b>0 m</b></p>
+</div>
+
+<div class="gps-info">
+    📍 GPS automático activo durante el paseo
+</div>
+
+<div id="eventosBox">
+    <button onclick="marcarEvento('agua')" style="background:#2196f3;">💧 Agua</button>
+    <button onclick="marcarEvento('popo')" style="background:#795548;">💩 Popó</button>
+    <button onclick="marcarEvento('comida')" style="background:#ff9800;">🍖 Comida</button>
+    <button onclick="marcarEvento('olfateo')" style="background:#9c27b0;">👃 Olfateo</button>
+</div>
+
+<hr>
+<h3>🐶 Mis Perros</h3>
+<div class="perros-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px;">
+    <div>
+        <h4 style="color:#2e7d32;font-size:14px;margin-bottom:8px;text-align:center;">📋 Disponibles</h4>
+        <div id="listaPerrosDisponibles"><p style="font-size:13px;color:#666;text-align:center;">Cargando...</p></div>
+    </div>
+    <div>
+        <h4 style="color:#ff9800;font-size:14px;margin-bottom:8px;text-align:center;">🟡 En mi Paseo</h4>
+        <div id="listaPerrosEnPaseo"><p style="font-size:13px;color:#666;text-align:center;">Ninguno</p></div>
+    </div>
+</div>
+<style>
+@media (max-width: 480px) {
+    .perros-grid { grid-template-columns: 1fr !important; }
+}
+.perro-compacto {
+    background: #fff;
+    border: 2px solid #e0e0e0;
+    border-radius: 10px;
+    padding: 10px;
+    margin-bottom: 8px;
+    text-align: left;
+}
+.perro-compacto p { margin: 2px 0; font-size: 13px; color: #444; }
+.perro-compacto .nombre { font-weight: bold; color: #2e7d32; font-size: 14px; }
+.perro-compacto .cliente { color: #666; font-size: 12px; }
+.perro-compacto .dias { color: #888; font-size: 11px; }
+.perro-compacto .crono-perro {
+    font-family: 'Courier New', monospace;
+    font-weight: bold;
+    color: #856404;
+    background: #fff3cd;
+    border-radius: 6px;
+    padding: 4px 6px;
+    display: inline-block;
+    font-size: 13px;
+}
+.perro-compacto button {
+    width: 100%;
+    padding: 8px;
+    font-size: 13px;
+    margin-top: 6px;
+}
+.grupo-cliente {
+    background: #f5f5f5;
+    border-radius: 10px;
+    padding: 8px;
+    margin-bottom: 10px;
+}
+.grupo-cliente .cliente-nombre {
+    font-weight: bold;
+    color: #555;
+    font-size: 13px;
+    padding: 4px 8px;
+    border-bottom: 1px solid #ddd;
+    margin-bottom: 6px;
+}
+</style>
+
+<button id="btnFinalizarPaseo" onclick="finalizarPaseoCompleto()" style="display:none;background:#d32f2f;">⏹ Finalizar Paseo Completo</button>
+
+<hr>
+<button id="btnFoto" disabled>📷 Toca: foto · Mantén presionado: video</button>
+<button onclick="verHistorial()">📊 Mi Historial</button>
+<button onclick="cerrarSesion()" class="cerrar">🚪 Cerrar Sesión</button>
+
+</div>
+</div>
+
+<script type="module" src="script.js"></script>
+
+<script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(function(){});
+}
+</script>
+
+</body>
+</html>
